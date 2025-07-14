@@ -1,7 +1,7 @@
 from fastapi import FastAPI, UploadFile, File
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-from faster_whisper import WhisperModel
+import whisperx
 import os
 from typing import Optional
 from pydantic import BaseModel
@@ -20,8 +20,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Load faster-whisper model once at startup (base size)
-model = WhisperModel("base", device="cpu", compute_type="int8")
+# Load the model once at startup
+device = "cpu"
+model = whisperx.load_model("base", device, compute_type="int8")
 
 class TranscriptionResponse(BaseModel):
     success: bool
@@ -36,17 +37,18 @@ async def transcribe_audio(file: UploadFile = File(...)):
     - **file**: Audio file to transcribe (WAV, MP3 supported)
     """
     try:
-                # Save uploaded bytes to temp file
-        temp_path = "temp_audio"
-        with open(temp_path, "wb") as tmp:
-            tmp.write(await file.read())
-
-        # Transcribe using faster-whisper
-        segments, _ = model.transcribe(temp_path)
-        transcription = " ".join([seg.text for seg in segments])
-
-        os.remove(temp_path)
-        return {"success": True, "transcription": transcription}
+        # Save the uploaded file temporarily
+        temp_file = "temp_audio"
+        with open(temp_file, "wb") as buffer:
+            buffer.write(await file.read())
+        
+        # Transcribe the audio
+        result = model.transcribe(temp_file)
+        
+        # Clean up
+        os.remove(temp_file)
+        
+        return {"success": True, "transcription": result["text"]}
     except Exception as e:
         return {"success": False, "error": str(e)}
 
