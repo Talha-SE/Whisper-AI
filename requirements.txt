@@ -1,5 +1,6 @@
 fastapi==0.110.0
 uvicorn==0.29.0
-transformers==4.40.0
-openai-whisper==1.1.10
+faster-whisper==0.10.0
+sentencepiece==0.1.99
+ctranslate2==4.1.0
 python-multipart==0.0.9
