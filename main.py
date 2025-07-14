@@ -20,9 +20,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Load the model once at startup
+# Load whisperx model once at startup (tiny size for free tier)
 device = "cpu"
-model = whisperx.load_model("base", device, compute_type="int8")
+model = whisperx.load_model("tiny", 
+                          device, 
+                          compute_type="int8",
+                          download_root="/tmp/models")  # Prevents home dir usage
 
 class TranscriptionResponse(BaseModel):
     success: bool
